@@ -6,13 +6,14 @@ import io.reactivex.Maybe
 
 class NewsRepository(private val newsApi: NewsApi) {
 
-    var articles: Array<Article>? = null
+    var articles: List<Article>? = null
 
-    fun getArticles(refresh: Boolean): Maybe<Array<Article>> {
+    fun getArticles(refresh: Boolean): Maybe<List<Article>> {
         if (articles != null && !refresh) return Maybe.just(articles)
         return newsApi.getArticles()
                 .map { a ->
-                    articles = a
+                    // a is returned as an array
+                    articles = listOf(*a)
                     return@map articles
                 }
     }

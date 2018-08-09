@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Oath</string>
+    <string name="error">An error occurred while getting articles, please try again later</string>
 </resources>

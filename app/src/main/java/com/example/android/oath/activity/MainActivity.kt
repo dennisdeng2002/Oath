@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     private fun setup() {
         swipe_refresh_layout.setOnRefreshListener { getArticles(true) }
         recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.adapter = NewsAdapter(articles)
+        recycler_view.adapter = NewsAdapter(this, articles)
         getArticles(false)
     }
 

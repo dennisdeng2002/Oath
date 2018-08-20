@@ -4,6 +4,8 @@ import com.example.android.oath.database.FavoritesDao
 import com.example.android.oath.model.Article
 import com.example.android.oath.model.Favorite
 import io.reactivex.Maybe
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 
 class FavoritesRepository(
         private var favoritesDao: FavoritesDao
@@ -19,6 +21,7 @@ class FavoritesRepository(
     fun addArticleToFavorites(article: Article) {
         val favorite = Favorite(article.id, article.content.title, article.content.summary)
         favorites[article.id] = favorite
+        commitToDatabase()
     }
 
     fun addToFavorites(favorite: Favorite) {
@@ -31,9 +34,13 @@ class FavoritesRepository(
         commitToDatabase()
     }
 
-    fun commitToDatabase() {
-        favoritesDao.deleteAll()
-        favoritesDao.insertAll(favorites.values.toList())
+    private fun commitToDatabase() {
+        Observable.create<Unit> { emitter ->
+            favoritesDao.deleteAll()
+            favoritesDao.insertAll(favorites.values.toList())
+            emitter.onComplete()
+        }.subscribeOn(Schedulers.io())
+                .subscribe()
     }
 
     fun getFavorites(): Maybe<List<Favorite>> {

@@ -9,6 +9,8 @@ import javax.inject.Singleton
     ActivityModule::class,
     AndroidSupportInjectionModule::class,
     AppModule::class,
+    DatabaseModule::class,
+    FragmentModule::class,
     NetModule::class,
     RepositoryModule::class
 ])

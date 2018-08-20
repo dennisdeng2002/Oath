@@ -1,24 +1,19 @@
 package com.example.android.oath.activity
 
 import android.os.Bundle
+import android.support.v4.app.Fragment
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.view.View
 import com.example.android.oath.R
-import com.example.android.oath.adapter.NewsAdapter
-import com.example.android.oath.model.Article
-import com.example.android.oath.repository.NewsRepository
+import com.example.android.oath.fragment.FavoritesFragment
+import com.example.android.oath.fragment.NewsFragment
 import dagger.android.AndroidInjection
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
-import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-    @Inject() lateinit var newsRepository: NewsRepository
-    private var articles: MutableList<Article> = arrayListOf()
+    val newsFragment = NewsFragment.newInstance()
+    val favoritesFragment = FavoritesFragment.newInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
@@ -29,29 +24,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setup() {
-        swipe_refresh_layout.setOnRefreshListener { getArticles(true) }
-        recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.adapter = NewsAdapter(this, articles)
-        getArticles(false)
-    }
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.menu)
+        val toggle = ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.app_name, R.string.app_name)
+        drawer_layout.addDrawerListener(toggle)
 
-    private fun getArticles(refresh: Boolean) {
-        newsRepository.getArticles(refresh)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ a ->
-                    articles.clear()
-                    articles.addAll(a)
-                    error_text_view.visibility = View.GONE
-                    recycler_view.visibility = View.VISIBLE
-                    swipe_refresh_layout.isRefreshing = false
-                    recycler_view.adapter.notifyDataSetChanged()
-                }, { error ->
-                    error.printStackTrace()
-                    error_text_view.visibility = View.VISIBLE
-                    recycler_view.visibility = View.GONE
-                    swipe_refresh_layout.isRefreshing = false
-                })
+        supportFragmentManager
+                .beginTransaction()
+                .add(R.id.container, newsFragment, NewsFragment.TAG)
+                .commit()
+
+        navigation_view.setNavigationItemSelectedListener { item ->
+            drawer_layout.closeDrawers()
+
+            var fragment: Fragment? = null
+            var tag: String? = null
+
+            when (item.itemId) {
+                R.id.news -> {
+                    fragment = newsFragment
+                    tag = NewsFragment.TAG
+                }
+
+                R.id.favorites -> {
+                    fragment = favoritesFragment
+                    tag = FavoritesFragment.TAG
+                }
+            }
+
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.container, fragment, tag)
+                    .commit()
+
+            true
+        }
     }
 
 }
